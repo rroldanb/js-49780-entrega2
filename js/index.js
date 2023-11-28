@@ -29,13 +29,14 @@ row.classList.add("row");
 
 PRODUCTOS.forEach((producto, index) => {
     let col = document.createElement("div");
-    col.classList.add("col-md-4");
-    col.classList.add("col-sm-6");
+    col.classList = ("col-md-4 col-sm-6 text-center");
 
-    let div = document.createElement("div");
-    div.innerHTML = `
-    <div class="card col" style="width: 18rem;">
-        <img src="${producto.img} " class="card-img-top" alt="Imagen de ${producto.nombre}">
+    let cardProducto = document.createElement("div");
+    cardProducto.classList = "card cardProducto text-center mx-auto"
+    cardProducto.innerHTML =
+
+        `
+        <img src="${producto.img} " class="card-img-top img-fluid" alt="Imagen de ${producto.nombre}">
         <div class="card-body">
             <h5 class="card-title">${producto.nombre}</h5>
             <p class="card-text">Precio: ${producto.precio.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} por ${producto.unidad}</p>
@@ -43,11 +44,8 @@ PRODUCTOS.forEach((producto, index) => {
             <button class="btn btn-primary" onclick="agregarAlCarro(${index})">Agregar al Carro</button>
     
         </div>
-    </div>
     `;
-
-
-    col.appendChild(div);
+    col.appendChild(cardProducto);
     row.appendChild(col);
 });
 contenedorProductos.appendChild(row);
@@ -85,7 +83,7 @@ function ingresaCantidad(index) {
                         if (cantidadProducto < 0) {
                             alert(`Por favor indique un numero positivo`)
                         } else {
-                            procesaCompra(index, cantidadProducto);
+                            agregaCarro(index, cantidadProducto);
                             reintentar = false
                         }
                     }
@@ -107,7 +105,7 @@ class ItemCarro {
     }
 }
 
-function procesaCompra(index, cantidadProducto) {
+function agregaCarro(index, cantidadProducto) {
     let stockActual = PRODUCTOS[index].stock - cantidadProducto;;
     PRODUCTOS[index].stock = stockActual;
     let existeProducto = carroCompras.some(ItemCarro => ItemCarro.producto === PRODUCTOS[index]);
@@ -120,7 +118,6 @@ function procesaCompra(index, cantidadProducto) {
         carroCompras[indiceEnCarro].cantidad += cantidadProducto;
     }
     refrescaCarro();
-    console.log(carroCompras)
 }
 
 // Despliega el carro
@@ -131,52 +128,117 @@ function refrescaCarro() {
 
     let acumulaTotal = 0;
 
-
     contenedorCarro.innerHTML = '';
 
-    carroCompras.forEach((itemCarro) => {
+    // carroCompras.forEach((itemCarro) => {
+    carroCompras.forEach((itemCarro, index) => {
         let col = document.createElement("div");
-        col.classList.add("col-md-4");
-        col.classList.add("col-sm-6");
-        let div = document.createElement("div");
+        col.classList = "col-md-4 col-sm-6 text-center";
+
+        let cardCarro = document.createElement("div");
+        cardCarro.classList = "card mb-3 cardCarro mx-auto";
 
         let subTotal = itemCarro.cantidad * itemCarro.producto.precio;
         acumulaTotal += subTotal;
 
-        div.innerHTML = `
-
-    <div class="card mb-3" style="width: 300px;">
-
-  <div class="row g-0">
-    <div class="col-md-4">
-      <img src="${itemCarro.producto.img}" class="img-fluid rounded imagenCarro" alt="Imagen de ${itemCarro.producto.nombre}">
-    </div>
-    <div class="col-md-8">
-      <div class="card-body">
-        <h5 class="card-text"> ${itemCarro.producto.nombre} </h5>
-        <p class="card-text"> Cantidad: ${itemCarro.cantidad} ${itemCarro.producto.unidad}</p>
-        <p class="card-text"> Subtotal:  <strong>${subTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></p>
-      </div>
-    </div>
-  </div>
-</div>
+        cardCarro.innerHTML =
+            `
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="${itemCarro.producto.img}" class="img-fluid rounded imagenCarro"
+                        alt="Imagen de ${itemCarro.producto.nombre}">
+                        <button type="button"  class="btn btn-danger btn-sm cancelarCompra" data-index="${index}">Quitar</button>
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-text"> ${itemCarro.producto.nombre} </h5>
+                        <p class="card-text"> Cantidad: ${itemCarro.cantidad} ${itemCarro.producto.unidad}</p>
+                        <p class="card-text"> Subtotal: <strong>${subTotal.toLocaleString('es-CL', {
+                style: 'currency',
+                currency: 'CLP'
+            })}</strong></p>
+                    </div>
+                </div>
+            </div>
     `;
 
-        col.appendChild(div);
+        col.appendChild(cardCarro);
         contenedorCarro.appendChild(col);
 
-if (acumulaTotal > 0) {
-    document.getElementById("carritoHeader").innerHTML = "Su carro de compras contiene:";
-} else {
-    document.getElementById("carritoHeader").innerHTML = "Su carro de compras está vacío";
-}
+
 
     });
 
     // Desplegar el total acumulado
-    let carritoFooter = document.getElementById('carritoFooter');
-    carritoFooter.innerHTML = `
-        <h5 class="font-weight-bold mt-3">El total de su compra es: <strong> ${acumulaTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></h5>
-    `;
+
+    if (acumulaTotal > 0) {
+        document.getElementById("carritoHeader").innerHTML = "Su carro de compras contiene:";
+        let carritoFooter = document.getElementById('carritoFooter');
+        carritoFooter.innerHTML = `
+                        <h5 class="font-weight-bold mt-3">El total de su compra es: <strong> ${acumulaTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></h5>
+                        <button class="btn btn-primary" onclick="finalizaCompra()">Finalizar su compra</button>
+
+                    `;
+    } else {
+        document.getElementById("carritoHeader").innerHTML = "Su carro de compras está vacío";
+        let carritoFooter = document.getElementById('carritoFooter');
+    carritoFooter.innerHTML = ``;
+    }
+
 
 };
+
+document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('cancelarCompra')) {
+        const index = event.target.getAttribute('data-index');
+        cancelarCompra(index);
+    }
+});
+
+function cancelarCompra(index) {
+    const itemCancelado = carroCompras[index];
+    const productoCancelado = itemCancelado.producto;
+    const cantidadCancelada = itemCancelado.cantidad;
+
+    // Devolver la cantidad al stock disponible
+    productoCancelado.stock += cantidadCancelada;
+
+    // Eliminar el producto del carro
+    carroCompras.splice(index, 1);
+
+    // Actualizar la visualización del carro
+    refrescaCarro();
+
+    // Refrescar el contenedor de productos
+    refrescarProductos();
+}
+
+function refrescarProductos() {
+    contenedorProductos.innerHTML = ''; 
+
+    PRODUCTOS.forEach((producto, index) => {
+        let col = document.createElement("div");
+        col.classList = ("col-md-4 col-sm-6 text-center");
+
+        let cardProducto = document.createElement("div");
+        cardProducto.classList = "card cardProducto text-center mx-auto";
+        cardProducto.innerHTML = `
+                <img src="${producto.img} " class="card-img-top img-fluid" alt="Imagen de ${producto.nombre}">
+                <div class="card-body">
+                    <h5 class="card-title">${producto.nombre}</h5>
+                    <p class="card-text">Precio: ${producto.precio.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} por ${producto.unidad}</p>
+                    <p class="card-text">Stock: <span id="stock-${index}">${producto.stock}  </span> ${producto.unidad}</p>
+                    <button class="btn btn-primary" onclick="agregarAlCarro(${index})">Agregar al Carro</button>
+                </div>
+            `;
+
+        col.appendChild(cardProducto);
+        contenedorProductos.appendChild(col);
+    });
+}
+
+function finalizaCompra(){
+    alert (`Gracias por su compra, vuelva pronto`)
+    carroCompras=[];
+    refrescaCarro();
+}
