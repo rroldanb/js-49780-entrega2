@@ -1,20 +1,24 @@
 // Creación de productos
 
 class Producto {
-    constructor(codigo, nombre, precio, stock, img) {
+    constructor(codigo, nombre, precio, stock, unidad, img) {
         this.codigo = codigo;
         this.nombre = nombre;
         this.precio = precio;
         this.stock = stock;
+        this.unidad = unidad;
         this.img = img
     }
 }
 
-let asado = new Producto(1, "Asado", 11000, 10, "../assets/img/asado.jpeg");
-let bife = new Producto(2, "Bife", 12000, 9, "../assets/img/bife-angus.jpg");
-let cuadril = new Producto(3, "Colita de Cuadril", 13000, 8, "../assets/img/colita-de-cuadril.jpg");
+let asado = new Producto(1, "Asado", 11000, 10, "Kg", "./assets/img/asado.webp");
+let bife = new Producto(2, "Bife", 12000, 9, "Kg", "./assets/img/bife-angus.webp");
+let cuadril = new Producto(3, "Colita de Cuadril", 13000, 8, "Kg", "./assets/img/colita-de-cuadril.webp");
+let entrana = new Producto(4, "Entraña", 14000, 9, "Kg", "./assets/img/entrana.webp");
+let tomahawk = new Producto(5, "Tomahawk", 15000, 9, "Kg", "./assets/img/tomahawk.webp");
+let entrecot = new Producto(6, "Entrecot", 16000, 9, "Kg", "./assets/img/entrecot.webp");
 
-const PRODUCTOS = [asado, bife, cuadril];
+const PRODUCTOS = [asado, bife, cuadril, entrana, tomahawk, entrecot];
 
 
 //Despliega productos
@@ -34,8 +38,8 @@ PRODUCTOS.forEach((producto, index) => {
         <img src="${producto.img} " class="card-img-top" alt="Imagen de ${producto.nombre}">
         <div class="card-body">
             <h5 class="card-title">${producto.nombre}</h5>
-            <p class="card-text">Precio: ${producto.precio.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} El kilo</p>
-            <p class="card-text">Stock: <span id="stock-${index}">${producto.stock} Kilos </span></p>
+            <p class="card-text">Precio: ${producto.precio.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} por ${producto.unidad}</p>
+            <p class="card-text">Stock: <span id="stock-${index}">${producto.stock}  </span> ${producto.unidad}</p>
             <button class="btn btn-primary" onclick="agregarAlCarro(${index})">Agregar al Carro</button>
     
         </div>
@@ -65,24 +69,29 @@ function ingresaCantidad(index) {
     let productoIngresar = PRODUCTOS[index].nombre;
     let stockActual = PRODUCTOS[index].stock;
     while (reintentar) {
-        let cantidadProducto = prompt(`Está agregando al Carro ${productoIngresar}; El stock disponible es de ${stockActual} Kilos Por favor indique la cantidad en kilos que desea comprar (Esc para salir)`);
+        let cantidadProducto = prompt(`Está agregando al Carro ${productoIngresar}; El stock disponible es de ${stockActual} ${PRODUCTOS[index].unidad} Por favor indique la cantidad en ${PRODUCTOS[index].unidad} que desea comprar (Esc para salir)`);
         if (cantidadProducto === null) {
             cantidadProducto = 0;
             reintentar = false
-        } else
+        } else {
             if (reintentar) {
                 cantidadProducto = parseFloat(cantidadProducto)
                 if (isNaN(cantidadProducto)) {
                     alert("Por favor ingrese un número válido");
                 } else {
                     if (cantidadProducto > stockActual) {
-                        alert(`No contamos con stock suficiente para cumplir con su requerimiento, el stock actual es de ${stockActual} Kilos`)
+                        alert(`No contamos con stock suficiente para cumplir con su requerimiento, el stock actual es de ${stockActual} ${PRODUCTOS[index].unidad}`)
                     } else {
-                        procesaCompra(index, cantidadProducto);
-                        reintentar = false
+                        if (cantidadProducto < 0) {
+                            alert(`Por favor indique un numero positivo`)
+                        } else {
+                            procesaCompra(index, cantidadProducto);
+                            reintentar = false
+                        }
                     }
                 }
             }
+        }
     }
 }
 
@@ -121,6 +130,8 @@ const contenedorCarro = document.getElementById('contenedorCarro');
 function refrescaCarro() {
 
     let acumulaTotal = 0;
+
+
     contenedorCarro.innerHTML = '';
 
     carroCompras.forEach((itemCarro) => {
@@ -134,17 +145,17 @@ function refrescaCarro() {
 
         div.innerHTML = `
 
-    <div class="card mb-3" style="max-width: 540px;">
+    <div class="card mb-3" style="width: 300px;">
 
   <div class="row g-0">
     <div class="col-md-4">
-      <img src="${itemCarro.producto.img}" class="img-fluid rounded" alt="Imagen de ${itemCarro.producto.nombre}">
+      <img src="${itemCarro.producto.img}" class="img-fluid rounded imagenCarro" alt="Imagen de ${itemCarro.producto.nombre}">
     </div>
     <div class="col-md-8">
       <div class="card-body">
-        <p class="card-text"> ${itemCarro.producto.nombre} </p>
-        <p class="card-text"> Cantidad: ${itemCarro.cantidad}</p>
-        <p class="card-text"> Subtotal:  ${subTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</p>
+        <h5 class="card-text"> ${itemCarro.producto.nombre} </h5>
+        <p class="card-text"> Cantidad: ${itemCarro.cantidad} ${itemCarro.producto.unidad}</p>
+        <p class="card-text"> Subtotal:  <strong>${subTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></p>
       </div>
     </div>
   </div>
@@ -154,12 +165,18 @@ function refrescaCarro() {
         col.appendChild(div);
         contenedorCarro.appendChild(col);
 
+if (acumulaTotal > 0) {
+    document.getElementById("carritoHeader").innerHTML = "Su carro de compras contiene:";
+} else {
+    document.getElementById("carritoHeader").innerHTML = "Su carro de compras está vacío";
+}
+
     });
 
     // Desplegar el total acumulado
     let carritoFooter = document.getElementById('carritoFooter');
     carritoFooter.innerHTML = `
-        <p class="font-weight-bold mt-3">El total de su compra es: <strong> ${acumulaTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></p>
+        <h5 class="font-weight-bold mt-3">El total de su compra es: <strong> ${acumulaTotal.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</strong></h5>
     `;
 
 };
